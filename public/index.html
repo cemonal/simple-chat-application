@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Chat App</title>
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
+  <p>Active Users: <span id="active-users">0</span></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(function () {
+      const socket = io();
+
+      $('#form').submit(function() {
+        socket.emit('chat message', $('#input').val());
+        $('#input').val('');
+        return false;
+      });
+
+      socket.on('chat message', function(data){
+        $('#messages').append($('<li>').text(`${data.sender}: ${data.message}`));
+      });
+
+      socket.on('user joined', function(username) {
+        $('#messages').append($('<li>').text(`${username} joined the chat`));
+      });
+
+      socket.on('user left', function(username) {
+        $('#messages').append($('<li>').text(`${username} left the chat`));
+      });
+
+      socket.on('active users', function(activeUsers) {
+        $('#active-users').text(activeUsers);
+      });
+
+      const username = prompt('Enter your username:');
+      if (username) {
+        socket.emit('new user', username);
+      }
+    });
+  </script>
+</body>
+</html>
